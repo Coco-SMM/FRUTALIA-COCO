@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frutalia - Pedido de Jugos Naturales</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Fredoka One', cursive;
+      background: linear-gradient(120deg, #ffe259, #ffa751);
+      color: #333;
+    }
+    .container {
+      max-width: 700px;
+      margin: 2rem auto;
+      background-color: #fffdf7;
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #e17055;
+      margin-bottom: 1rem;
+    }
+    form label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      font-weight: bold;
+      color: #00b894;
+    }
+    form input,
+    form select,
+    form textarea {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.3rem;
+      border: 2px solid #fab1a0;
+      border-radius: 10px;
+      font-size: 1rem;
+      background-color: #fff;
+    }
+    form button {
+      margin-top: 1.5rem;
+      background: linear-gradient(to right, #fdcb6e, #e17055);
+      color: white;
+      border: none;
+      padding: 1rem;
+      font-size: 1.1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    form button:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .mensaje-exito {
+      margin-top: 1.5rem;
+      background-color: #55efc4;
+      color: #2d3436;
+      padding: 1rem;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: bold;
+    }
+    #tabla-pedidos {
+      margin-top: 2rem;
+      overflow-x: auto;
+    }
+    #tabla-pedidos table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    #tabla-pedidos th, #tabla-pedidos td {
+      padding: 0.9rem;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    #tabla-pedidos th {
+      background-color: #fdcb6e;
+      color: #2d3436;
+    }
+    #tabla-pedidos tr:nth-child(even) {
+      background-color: #fceae3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fas fa-apple-alt"></i> Frutalia - Pedido de Jugos</h1>
+    <form id="pedido-form">
+      <label for="nombre"><i class="fas fa-user"></i> Nombre del cliente:</label>
+      <input type="text" id="nombre" name="Nombre del cliente" required>
+
+      <label for="telefono"><i class="fas fa-phone"></i> Teléfono:</label>
+      <input type="tel" id="telefono" name="Teléfono" required>
+
+      <label for="sabor"><i class="fas fa-lemon"></i> Sabor del jugo:</label>
+      <select id="sabor" name="Sabor del jugo" required>
+        <option value="naranja">Naranja</option>
+        <option value="mango">Mango</option>
+        <option value="fresa">Fresa</option>
+        <option value="piña">Piña</option>
+      </select>
+
+      <label for="tamano"><i class="fas fa-glass-whiskey"></i> Tamaño:</label>
+      <select id="tamano" name="Tamaño" required>
+        <option value="chico">Chico</option>
+        <option value="mediano">Mediano</option>
+        <option value="grande">Grande</option>
+      </select>
+
+      <label for="comentarios"><i class="fas fa-comment"></i> Comentarios adicionales:</label>
+      <textarea id="comentarios" name="Comentarios adicionales"></textarea>
+
+      <button type="submit">Enviar Pedido</button>
+    </form>
+
+    <p id="mensaje-confirmacion" class="mensaje-exito" style="display:none;">
+      Tu pedido ha sido enviado con éxito, pasa a recogerlo en 10 minutos. ¡Frutalia agradece tu preferencia!
+    </p>
+
+    <h2><i class="fas fa-receipt"></i> Pedidos Recientes</h2>
+    <div id="tabla-pedidos"></div>
+  </div>
+
+  <script>
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxcklT8IBS53bbHQFe3wEgRuqnluffUazAKwZdnXo8vRH740QQDkBdbWDiH5tF3zOZLgQ/exec';
+
+    document.getElementById('pedido-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const datos = new FormData(e.target);
+
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        body: datos
+      })
+      .then(response => {
+        document.getElementById('mensaje-confirmacion').style.display = 'block';
+        e.target.reset();
+        cargarPedidos();
+      })
+      .catch(error => {
+        alert('Ocurrió un error al enviar tu pedido. Intenta nuevamente.');
+        console.error(error);
+      });
+    });
+
+    function cargarPedidos() {
+      fetch(GOOGLE_SCRIPT_URL)
+        .then(response => response.json())
+        .then(data => {
+          const contenedor = document.getElementById('tabla-pedidos');
+          let tablaHTML = '<table><thead><tr>' +
+            '<th>Nombre del cliente</th><th>Teléfono</th><th>Sabor del jugo</th><th>Tamaño</th><th>Comentarios adicionales</th>' +
+            '</tr></thead><tbody>';
+
+          data.forEach(row => {
+            tablaHTML += `<tr>
+              <td>${row[0]}</td>
+              <td>${row[1]}</td>
+              <td>${row[2]}</td>
+              <td>${row[3]}</td>
+              <td>${row[4]}</td>
+            </tr>`;
+          });
+
+          tablaHTML += '</tbody></table>';
+          contenedor.innerHTML = tablaHTML;
+        })
+        .catch(error => {
+          console.error('Error al cargar los pedidos:', error);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', cargarPedidos);
+  </script>
+
+  <!-- Código AppScript para copiar en https://script.google.com -->
+  <!--
+  function doPost(e) {
+    var hoja = SpreadsheetApp.openById('1HWVndbNk5nFbIV8uLx7RZr2XFkU3JelKqScDWghlOOI').getSheetByName('BASE DE DATOS');
+    hoja.appendRow([
+      e.parameter['Nombre del cliente'],
+      e.parameter['Teléfono'],
+      e.parameter['Sabor del jugo'],
+      e.parameter['Tamaño'],
+      e.parameter['Comentarios adicionales']
+    ]);
+    return ContentService.createTextOutput("OK");
+  }
+
+  function doGet() {
+    var hoja = SpreadsheetApp.openById('1HWVndbNk5nFbIV8uLx7RZr2XFkU3JelKqScDWghlOOI').getSheetByName('BASE DE DATOS');
+    var datos = hoja.getDataRange().getValues();
+    datos.shift();
+    return ContentService.createTextOutput(JSON.stringify(datos)).setMimeType(ContentService.MimeType.JSON);
+  }
+  -->
+</body>
+</html>
